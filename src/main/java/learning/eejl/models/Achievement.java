@@ -5,9 +5,9 @@ import lombok.Data;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "user_tb")
+@Table(name = "achievement_tb")
 @Data
-public class User {
+public class Achievement {
   @Id
   @GeneratedValue
   Integer id;
@@ -15,13 +15,7 @@ public class User {
   @Column(nullable = false)
   String name;
 
-  @Column(nullable = false)
-  String email;
-
-  @Column(nullable = false)
-  String pass;
-
-  @Column(nullable = false)
-  int points=0;
-
+  @ManyToOne
+  @JoinColumn(nullable = false)
+  User user_id;
 }
