@@ -3,7 +3,7 @@ package learning.eejl.models;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "books_readed")
+@Table(name = "tb_books_readed")
 public class BookReaded {
   @Id
   @GeneratedValue

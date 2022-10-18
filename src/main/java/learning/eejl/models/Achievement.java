@@ -5,7 +5,7 @@ import lombok.Data;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "achievement_tb")
+@Table(name = "tb_achievement")
 @Data
 public class Achievement {
   @Id
