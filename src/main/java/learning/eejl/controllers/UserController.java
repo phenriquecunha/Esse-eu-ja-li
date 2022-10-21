@@ -1,9 +1,12 @@
 package learning.eejl.controllers;
 
 import learning.eejl.dtos.LoginDto;
+import learning.eejl.dtos.ReadDto;
 import learning.eejl.dtos.UserDto;
 import learning.eejl.dtos.UserLoginDto;
+import learning.eejl.models.BookReaded;
 import learning.eejl.models.User;
+import learning.eejl.repositories.BookReadedRepository;
 import learning.eejl.repositories.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,9 @@ public class UserController {
 
   @Autowired
   UserRepository userRepository;
+
+  @Autowired
+  BookReadedRepository bookReadedRepository;
 
   @Autowired
   PasswordEncoder encoder;
@@ -62,5 +68,23 @@ public class UserController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User id not found");
     }
     return ResponseEntity.ok().body(userExists.get());
+  }
+
+  @GetMapping("/ranking")
+  ResponseEntity<Object> getRanking(){
+    var users = userRepository.findAllByOrderByPointsDesc();
+    return ResponseEntity.ok().body(users);
+  }
+
+  @GetMapping("/read")
+  ResponseEntity<Object> setBookRead(@RequestBody ReadDto body){
+    var user = userRepository.findById(body.getUser_id());
+    if(user.isEmpty()){
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found!");
+    }
+    var br = new BookReaded();
+    br.setBook_id(body.getBook_id());
+    br.setUser_id(user.get());
+    return ResponseEntity.ok().body(bookReadedRepository.save(br));
   }
 }
