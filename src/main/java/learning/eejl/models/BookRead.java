@@ -5,17 +5,17 @@ import lombok.Data;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "tb_books_readed")
+@Table(name = "tb_books_read")
 @Data
-public class BookReaded {
+public class BookRead {
   @Id
   @GeneratedValue
   Integer id;
 
   @Column(nullable = false)
-  String book_id;
+  String bookId;
 
   @ManyToOne
   @JoinColumn(nullable = false)
-  User user_id;
+  User user;
 }

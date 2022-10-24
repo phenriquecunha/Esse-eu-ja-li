@@ -1,19 +1,19 @@
 package learning.eejl.controllers;
 
-import learning.eejl.dtos.LoginDto;
-import learning.eejl.dtos.ReadDto;
-import learning.eejl.dtos.UserDto;
-import learning.eejl.dtos.UserLoginDto;
-import learning.eejl.models.BookReaded;
+import learning.eejl.dtos.*;
+import learning.eejl.models.BookRead;
 import learning.eejl.models.User;
-import learning.eejl.repositories.BookReadedRepository;
+import learning.eejl.repositories.BookReadRepository;
 import learning.eejl.repositories.UserRepository;
+import learning.eejl.services.BookService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
@@ -23,32 +23,35 @@ public class UserController {
   UserRepository userRepository;
 
   @Autowired
-  BookReadedRepository bookReadedRepository;
+  BookReadRepository bookReadRepository;
+
+  @Autowired
+  BookService bookService;
 
   @Autowired
   PasswordEncoder encoder;
 
   @PostMapping("/register")
   ResponseEntity<Object> createUser(@RequestBody UserDto userDto){
-    var userExists = userRepository.findByEmail(userDto.getEmail());
-    if(userExists.isPresent()){
+    var user = userRepository.findByEmail(userDto.getEmail());
+    if(user.isPresent()){
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User already registered");
     }
-    var user = new User();
-    BeanUtils.copyProperties(userDto,user);
-    user.setPass(encoder.encode(user.getPass()));
-    return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(user));
+    var newUser = new User();
+    BeanUtils.copyProperties(userDto,newUser);
+    newUser.setPass(encoder.encode(newUser.getPass()));
+    return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(newUser));
   }
 
   @PostMapping("/login")
   ResponseEntity<Object> loginUser(@RequestBody UserLoginDto userDto){
-    var userExists = userRepository.findByEmail(userDto.getEmail());
-    if(userExists.isEmpty()){
+    var user = userRepository.findByEmail(userDto.getEmail());
+    if(user.isEmpty()){
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
     }
     var logReturn = new LoginDto();
-    logReturn.setId(userExists.get().getId());
-    if(encoder.matches(userDto.getPass(),userExists.get().getPass())){
+    logReturn.setId(user.get().getId());
+    if(encoder.matches(userDto.getPass(),user.get().getPass())){
       logReturn.setAuth(true);
       return ResponseEntity.ok().body(logReturn);
     }
@@ -61,13 +64,18 @@ public class UserController {
     return ResponseEntity.ok().body(userRepository.findAll());
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/id/{id}")
   ResponseEntity<Object> getUserById(@PathVariable int id){
-    var userExists = userRepository.findById(id);
-    if(userExists.isEmpty()){
+    var user = userRepository.findById(id);
+    if(user.isEmpty()){
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User id not found");
     }
-    return ResponseEntity.ok().body(userExists.get());
+    var response = new UserResponseDto();
+    response.setUser(user.get());
+    var booksRead = bookReadRepository.findByUser(user.get());
+    var booksReadIds = booksRead.stream().map(BookRead::getBookId).collect(Collectors.toList());
+    response.setBooksRead(booksReadIds);
+    return ResponseEntity.ok().body(response);
   }
 
   @GetMapping("/ranking")
@@ -82,9 +90,19 @@ public class UserController {
     if(user.isEmpty()){
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found!");
     }
-    var br = new BookReaded();
-    br.setBook_id(body.getBook_id());
-    br.setUser_id(user.get());
-    return ResponseEntity.ok().body(bookReadedRepository.save(br));
+    var pages = bookService.getPages(body.getBook_id(), FieldFilter.PAGES).get("volumeInfo").get("pageCount");
+    var points = user.get().getPoints() + (int)Math.ceil((double)pages/100);
+    user.get().setPoints(points);
+    userRepository.save(user.get());
+    var br = new BookRead();
+    br.setBookId(body.getBook_id());
+    br.setUser(user.get());
+    return ResponseEntity.ok().body(bookReadRepository.save(br));
   }
+
+//  @GetMapping("/test/{id}")
+//  Object test(@PathVariable String id){
+//    int pages = bookService.getPages(id, FieldFilter.PAGES)
+//    return (int)Math.ceil((double)pages/100);
+//  }
 }

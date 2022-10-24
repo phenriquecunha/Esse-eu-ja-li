@@ -14,7 +14,7 @@ public class EejlApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(EejlApplication.class, args);
-		System.out.println("Não se estresse pedrinho - === SPRING ==");
+		System.out.println("Não se estresse pedrinho :) === SPRING ===");
 	}
 	@Bean
 	public PasswordEncoder getPasswordEncoder(){

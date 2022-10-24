@@ -1,12 +1,14 @@
 package learning.eejl.services;
 
 import jdk.jshell.EvalException;
+import learning.eejl.dtos.FieldFilter;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Map;
 
 @FeignClient(name = "googleBooks",url = "https://www.googleapis.com/books/v1/volumes")
 public interface BookService {
@@ -18,5 +20,9 @@ public interface BookService {
   @GetMapping("/{id}")
   Object findBookById(@PathVariable String id,
                       @RequestParam(value = "fields") String fields);
+
+  @GetMapping("/{id}")
+  Map<String, Map<String, Integer>> getPages(@PathVariable String id,
+                               @RequestParam(value = "fields") String fields);
 
 }

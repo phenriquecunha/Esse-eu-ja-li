@@ -17,5 +17,5 @@ public class Achievement {
 
   @ManyToOne
   @JoinColumn(nullable = false)
-  User user_id;
+  User user;
 }
