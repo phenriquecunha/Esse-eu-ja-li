@@ -3,8 +3,10 @@ package learning.eejl.controllers;
 import learning.eejl.dtos.*;
 import learning.eejl.models.BookRead;
 import learning.eejl.models.User;
+import learning.eejl.repositories.AchievementRepository;
 import learning.eejl.repositories.BookReadRepository;
 import learning.eejl.repositories.UserRepository;
+import learning.eejl.services.AchievementService;
 import learning.eejl.services.BookService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/user")
 public class UserController {
 
+  @Autowired
+  AchievementService achievementService;
   @Autowired
   UserRepository userRepository;
 
@@ -100,9 +104,9 @@ public class UserController {
     return ResponseEntity.ok().body(bookReadRepository.save(br));
   }
 
-//  @GetMapping("/test/{id}")
-//  Object test(@PathVariable String id){
-//    int pages = bookService.getPages(id, FieldFilter.PAGES)
-//    return (int)Math.ceil((double)pages/100);
-//  }
+  @GetMapping("/test/{id}")
+  Object test(@PathVariable int id){
+    var user = userRepository.findById(id).get();
+    return achievementService.check(user);
+  }
 }
